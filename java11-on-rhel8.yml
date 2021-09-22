@@ -1,0 +1,8 @@
+---
+- name: playbook for installting java11
+  hosts: rhel-8-servers
+  tasks:
+    - name: install java11
+      yum:
+        name: java-11-openjdk-devel
+        state: present
