@@ -1,0 +1,18 @@
+---
+- name: Playbook to download apache maven
+  hosts: localhost
+  tasks:
+    - name: download apache maven
+      get_url:
+        url: https://dlcdn.apache.org/maven/maven-3/3.8.2/binaries/apache-maven-3.8.2-bin.tar.gz
+        dest: /opt
+        mode: '0755'
+    - name: extract tar file
+      unarchive:
+        src: /opt/apache-maven-3.8.2-bin.tar.gz
+        dest: /opt
+        remote_src: yes
+    - name: delet file
+      file:
+        path: /opt/apache-maven-3.8.2-bin.tar.gz
+        state: absent
