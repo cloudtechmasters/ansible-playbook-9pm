@@ -1,0 +1,11 @@
+---
+- name: playbook for installing java on ubuntu machine
+  hosts: servers
+  tasks:
+    - name: update apt package manager repositories cache
+      apt:
+        update_cache: yes
+    - name: install java 11 on ubuntu machine
+      apt:
+        name: openjdk-11-jdk
+        state: latest
