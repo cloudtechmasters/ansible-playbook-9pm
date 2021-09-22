@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  become: true
+  tasks:
+    - name: download maven artifact
+      maven_artifact:
+        group_id: mysql
+        artifact_id: mysql-connector-java
+        version: 8.0.25
+        repository_url: 'https://repo.maven.apache.org/maven2/'
+        dest: /opt
