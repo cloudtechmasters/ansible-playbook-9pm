@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  vars:
+    awsjsondata: {        "nexuspassword": "admin123",        "nexususername": "admin"   }
+  tasks:
+    - name: get nexususername
+      set_fact:
+        username: "{{ awsjsondata | json_query('nexususername') }}"
+    - name: print username
+      debug:
+        msg: "{{ username }}"
