@@ -1,0 +1,62 @@
+---
+- hosts: localhost
+  vars:
+    tomcat_user: tomcat10
+    tomcat_download_directory: /opt/apache-tomcat-10.1.0-M5
+  tasks:
+    - name: check java 11 package is already installed or not
+      yum:
+        list: java-11-amazon-corretto-headless
+      register: java11_check_output
+    - name: print java11-check-output
+      debug:
+        msg: "{{ java11_check_output  }}"
+    - name: install java11 package if is not there already
+      yum:
+        name: java-11-amazon-corretto-headless
+        state: present
+      when: java11_check_output.results | selectattr("yumstate", "match", "installed") | list | length == 0
+    - name: check tomcat10 directory is already present or not
+      stat:
+        path: "{{ tomcat_download_directory }}"
+      register: tomcat10_check_output
+    - name: download apache tomcat10 tar.gz
+      get_url:
+        url: https://archive.apache.org/dist/tomcat/tomcat-10/v10.1.0-M5/bin/apache-tomcat-10.1.0-M5.tar.gz
+        dest: /opt
+        mode: '0755'
+      when: not tomcat10_check_output.stat.exists
+    - name: extract apache tomcat10 tar
+      unarchive:
+        src: /opt/apache-tomcat-10.1.0-M5.tar.gz
+        dest: /opt
+        remote_src: yes
+    - name: create tomcat10 user
+      user:
+        name: "{{ tomcat_user }}"
+    - name: chnage ownership from root to tomcat10 user for apache tomcat10 directory
+      file:
+        path: /opt/apache-tomcat-10.1.0-M5
+        owner: "{{ tomcat_user }}"
+        group: "{{ tomcat_user }}"
+        state: directory
+        recurse: yes
+        mode: '0755'
+    - name: copy tomcat10.service file to systemd directory
+      copy:
+        src: /root/tomcat10.service
+        dest: /etc/systemd/system
+        mode: '0755'
+    - name: change ownership of tomcat service file
+      file:
+        path: /etc/systemd/system/tomcat10.service
+        owner: "{{ tomcat_user }}"
+        group: "{{ tomcat_user }}"
+        mode: '0755'
+    - name: reload the system
+      systemd:
+        daemon_reload: yes
+    - name: start tomcat10 service
+      service:
+        name: tomcat10
+        state: started
