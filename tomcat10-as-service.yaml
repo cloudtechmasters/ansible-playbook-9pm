@@ -1,0 +1,58 @@
+---
+- hosts: localhost
+  tasks:
+    - name: install java
+      yum:
+        name: java-11-amazon-corretto-headless
+        state: present
+    - name: fetch java home
+      shell: dirname $(dirname $(readlink -f $(which javac)))
+      register: temp_java_home
+    - name: print java home path
+      set_fact:
+        java_home: "{{ temp_java_home.stdout }}"
+    - name: download apache tomcat and extract
+      get_url:
+        url: 'https://archive.apache.org/dist/tomcat/tomcat-10/v10.1.0-M5/bin/apache-tomcat-10.1.0-M5.tar.gz'
+        dest: /opt
+        mode: '0755'
+    - name: extract tomcat
+      unarchive:
+        src: /opt/apache-tomcat-10.1.0-M5.tar.gz
+        dest: /opt
+        remote_src: yes
+    - name: create tomcat10 user
+      user:
+        name: tomcat10
+    - name: change ownership
+      file:
+        path: /opt/apache-tomcat-10.1.0-M5
+        state: directory
+        recurse: true
+        owner: tomcat10
+        group: tomcat10
+        mode: '0755'
+    - name: create tomcat service file from temlplate file
+      template:
+        src: /root/tomcat10.service.j2
+        dest: /root/tomcat10.service
+        owner: tomcat10
+        group: tomcat10
+        mode: '0755'
+    - name: copy service file to systemd system fodler
+      copy:
+        src: /root/tomcat10.service
+        dest: /etc/systemd/system/
+    - name: change the ownership
+      file:
+        path: /etc/systemd/system/tomcat10.service
+        owner: tomcat10
+        group: tomcat10
+        mode: '0755'
+    - name: reoad the system
+      systemd:
+        daemon-reload: yes
+    - name: start tomcat10 service
+      service:
+        name: tomcat10
+        state: started
